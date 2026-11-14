@@ -4,7 +4,7 @@ Static site hosted at https://esemmelman.github.io/bm01/.
 
 ## Shared sentence checklist
 
-The Sentences view contains 46 sentences extracted from Google Doc
+The Sentences view contains 49 sentences extracted from Google Doc
 `1H1FeOnmcoG6adM-HbzMolOGV4H1X5K3IiUpIsupmmJQ`, tab `t.xygo9jjhujlo`.
 `sentences.json` records this source snapshot; abbreviations such as `mins.` do
 not end a sentence. Subsequent Google Doc edits are not automatically imported.

@@ -19,6 +19,7 @@ const path = require('node:path');
   const a = await first.newPage();
   const b = await second.newPage();
   const url = process.env.TEST_URL || 'http://127.0.0.1:' + server.address().port;
+  const expected = JSON.parse(fs.readFileSync(path.join(__dirname, 'sentences.json'), 'utf8'));
   let original;
   const checkbox = page => page.locator('[data-sentence-id="46"] input');
   try {
@@ -27,9 +28,8 @@ const path = require('node:path');
       if (page === b) await page.locator('.mobile-nav [data-view="sentences"]').click();
       else await page.selectOption('#view', 'sentences');
       await page.waitForFunction(() => document.getElementById('sync-status').textContent.includes('Synced across devices'));
-      assert.equal(await page.locator('#sentence-list li').count(), 46);
+      assert.equal(await page.locator('#sentence-list li').count(), expected.length);
     }
-    const expected = JSON.parse(fs.readFileSync(path.join(__dirname, 'sentences.json'), 'utf8'));
     assert.deepEqual(await a.locator('.sentence-text').allTextContents(), expected);
     assert.deepEqual(await b.locator('.sentence-text').allTextContents(), expected);
     original = await checkbox(a).isChecked();
@@ -69,7 +69,7 @@ const path = require('node:path');
     await a.waitForFunction(() => document.getElementById('sync-status').textContent.includes('Save could not be confirmed'));
     assert.equal(await checkbox(a).isChecked(), !original);
     await a.unrouteAll();
-    console.log('PASS: 46 source sentences; two isolated browser contexts share state; reload persistence; gray styling; mobile width; sticky menu; print isolation; failed-save rollback.');
+    console.log(`PASS: ${expected.length} source sentences; two isolated browser contexts share state; reload persistence; gray styling; mobile width; sticky menu; print isolation; failed-save rollback.`);
   } finally {
     if (original !== undefined) {
       await a.unrouteAll();
