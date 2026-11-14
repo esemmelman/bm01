@@ -18,6 +18,16 @@ main{padding:20px 28px 40px}.panel{padding:26px}.panel-head{padding-bottom:16px;
 @page{size:auto;margin:16mm}
 @media print{body{background:white;color:#111;font-size:11pt}.layout{display:block;min-height:0}aside,.print,.caption{display:none!important}main{padding:0}.panel{padding:0;border:0;border-radius:0;box-shadow:none;background:white}.panel-head{margin-bottom:16px}h2{font-size:20pt}h3{break-after:avoid}.fact-list li,.fact-group li,.node{break-inside:avoid}.fact-group{break-inside:auto}.cards{display:block}.card{margin-bottom:16px}.flow{max-width:100%}.node{padding:10px}.arrow{font-size:18px}.note{border:1px solid #ccc;background:white}.panel-head{break-after:avoid}}
 select{height:228px}.sentence-list{list-style:none;padding:0;margin:18px 0}.sentence-list li{border-bottom:1px solid var(--line);padding:12px 0}.sentence-list label{display:grid;grid-template-columns:22px 34px minmax(0,1fr);align-items:start;gap:8px;margin:0;cursor:pointer}.sentence-list input{width:18px;height:18px;accent-color:var(--green);margin:5px 0 0}.sentence-number{color:var(--green);font-variant-numeric:tabular-nums}.sentence-list .is-checked .sentence-text,.sentence-list .is-checked .sentence-number{color:#909696}.sentence-list .is-checked{background:#f3f4f1}.sync-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;color:var(--muted);background:#eef3ed;padding:10px 14px;border-radius:6px}.sync-bar[data-error="true"]{background:#fff1e7;color:#9b3b19}.sentence-source{font-size:12px;color:var(--muted)}.sentence-source a{color:var(--green)}@media(max-width:720px){.sentence-list label{grid-template-columns:20px 27px minmax(0,1fr);gap:4px}.sentence-list{font-size:14px}}@media print{.sync-bar,.sentence-source{display:none!important}.sentence-list li{break-inside:avoid}.sentence-list label{grid-template-columns:20px 30px minmax(0,1fr)}.sentence-list input{appearance:none;border:1px solid #555;width:13px;height:13px}.sentence-list input:checked:after{content:'✓';display:block;line-height:11px;font-size:12px;color:#555}.sentence-list .is-checked{background:transparent}.sentence-list .is-checked .sentence-text,.sentence-list .is-checked .sentence-number{color:#999!important;print-color-adjust:exact}}
+.mobile-nav{display:none}
+@media screen and (max-width:720px){
+  .layout{display:block;max-width:none}
+  aside{position:sticky;top:0;height:auto;width:100%;padding:8px 10px;background:var(--paper);border-right:0;border-bottom:1px solid var(--line);z-index:10}
+  aside select{display:none}
+  .mobile-nav{display:flex;flex-wrap:wrap;gap:4px 6px}
+  .mobile-nav button{display:block;min-height:44px;padding:8px 12px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;line-height:1.4;color:var(--ink);white-space:nowrap}
+  .mobile-nav button[aria-pressed="true"]{background:var(--green);color:white}
+  main{width:100%;padding:12px 10px 30px}
+}
 </style>
 </head>
 <body>
@@ -31,6 +41,27 @@ select{height:228px}.sentence-list{list-style:none;padding:0;margin:18px 0}.sent
 <script>
 const selector=document.getElementById('view');
 const labels={summary:'summary',outline:'outline',flow:'flow chart',facts:'facts',organize:'organized facts',sentences:'sentences'};
+const mobileNav=document.createElement('nav');
+mobileNav.className='mobile-nav';
+mobileNav.setAttribute('aria-label','Choose a view');
+for(const option of selector.options){
+  const button=document.createElement('button');
+  button.type='button';
+  button.textContent=option.textContent;
+  button.dataset.view=option.value;
+  button.setAttribute('aria-controls',option.value);
+  button.setAttribute('aria-pressed',String(option.selected));
+  button.addEventListener('click',()=>{
+    selector.value=option.value;
+    selector.dispatchEvent(new Event('change'));
+    window.scrollTo({top:0,behavior:'instant'});
+  });
+  mobileNav.append(button);
+}
+selector.after(mobileNav);
+selector.addEventListener('change',()=>{
+  for(const button of mobileNav.children)button.setAttribute('aria-pressed',String(button.dataset.view===selector.value));
+});
 selector.addEventListener('change',()=>{for(const id of Object.keys(labels)){document.getElementById(id).hidden=id!==selector.value;}document.getElementById('status').textContent='Showing '+labels[selector.value];});
 document.querySelectorAll('.print').forEach(button=>button.addEventListener('click',()=>window.print()));
 </script>

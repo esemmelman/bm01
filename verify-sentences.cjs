@@ -24,7 +24,8 @@ const path = require('node:path');
   try {
     for (const page of [a, b]) {
       await page.goto(url);
-      await page.selectOption('#view', 'sentences');
+      if (page === b) await page.locator('.mobile-nav [data-view="sentences"]').click();
+      else await page.selectOption('#view', 'sentences');
       await page.waitForFunction(() => document.getElementById('sync-status').textContent.includes('Synced across devices'));
       assert.equal(await page.locator('#sentence-list li').count(), 46);
     }
@@ -37,9 +38,26 @@ const path = require('node:path');
     await b.waitForFunction(value => document.querySelector('[data-sentence-id="46"] input').checked === value, !original);
     assert.equal(await b.locator('[data-sentence-id="46"]').evaluate(row => row.classList.contains('is-checked')), !original);
     await b.reload();
-    await b.selectOption('#view', 'sentences');
+    await b.locator('.mobile-nav [data-view="sentences"]').click();
     await b.waitForFunction(value => document.querySelector('[data-sentence-id="46"] input').checked === value && !document.querySelector('[data-sentence-id="46"] input').disabled, !original);
     assert.equal(await b.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    for (const width of [320, 390, 720]) {
+      await b.setViewportSize({ width, height: 844 });
+      const menu = await b.locator('aside').boundingBox();
+      const content = await b.locator('main').boundingBox();
+      assert.equal(menu.width, width);
+      assert.equal(content.width, width);
+      assert.ok(content.y >= menu.y + menu.height);
+      assert.equal(await b.locator('#view').isVisible(), false);
+      assert.equal(await b.locator('.mobile-nav button').count(), 6);
+      assert.equal(await b.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    }
+    await b.setViewportSize({ width: 390, height: 844 });
+    for (const view of ['summary', 'outline', 'flow', 'facts', 'organize', 'sentences']) {
+      await b.locator(`.mobile-nav [data-view="${view}"]`).click();
+      assert.equal(await b.locator('#content > section:visible').getAttribute('id'), view);
+      assert.equal(await b.locator(`.mobile-nav [data-view="${view}"]`).getAttribute('aria-pressed'), 'true');
+    }
     await a.evaluate(() => window.scrollTo(0, 1200));
     assert.equal(Math.round((await a.locator('aside').boundingBox()).y), 0);
     await a.emulateMedia({ media: 'print' });
